@@ -1,2 +1,2 @@
 ## TODO
-- [] Make variant selection experiment specific
+- [ ] Make variant selection experiment specific
