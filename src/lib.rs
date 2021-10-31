@@ -6,6 +6,7 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use diesel::r2d2::ConnectionManager;
 use dotenv::dotenv;
+use models::Experiment;
 use std::env;
 
 use self::models::{Session};
@@ -24,10 +25,23 @@ pub fn create_db_pool() -> DbPool {
       .expect("Failed to create database connection pool.")
 }
 
-pub fn get_session(conn: &SqliteConnection, sid: String) -> Option<Session> {
+pub fn get_experiment(conn: &SqliteConnection, eid: String) -> Option<Experiment> {
+  use self::schema::experiments::dsl::*;
+
+  let results = experiments.filter(id.eq(&eid))
+    .limit(1)
+    .load::<Experiment>(conn)
+    .unwrap_or(vec![]);
+
+  return results.into_iter().nth(0)
+}
+
+pub fn get_session(conn: &SqliteConnection, sid: &String, eid: &String) -> Option<Session> {
   use self::schema::sessions::dsl::*;
 
-  let results = sessions.filter(id.eq(&sid))
+  let results = sessions
+    .filter(id.eq(sid))
+    .filter(experiment_id.eq(eid))
     .limit(1)
     .load::<Session>(conn)
     .unwrap_or(vec![]);
@@ -35,10 +49,11 @@ pub fn get_session(conn: &SqliteConnection, sid: String) -> Option<Session> {
   return results.into_iter().nth(0)
 }
 
-pub fn create_session(conn: &SqliteConnection, variant: u8) -> Session {
+pub fn create_session(conn: &SqliteConnection, experiment_id: &String, variant: i32) -> Session {
     let uuid = format!("{}", uuid::Uuid::new_v4());
     let new_session = Session {
         id: uuid,
+        experiment_id: experiment_id.to_owned(),
         variant: i32::from(variant),
     };
 

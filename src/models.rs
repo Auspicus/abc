@@ -1,4 +1,5 @@
 use super::schema::sessions;
+use super::schema::experiments;
 use actix_web::HttpResponse;
 use actix_web::http::{Cookie};
 
@@ -6,7 +7,15 @@ use actix_web::http::{Cookie};
 #[table_name = "sessions"]
 pub struct Session {
     pub id: String,
+    pub experiment_id: String,
     pub variant: i32,
+}
+
+#[derive(Insertable, Queryable)]
+#[table_name = "experiments"]
+pub struct Experiment {
+    pub id: String,
+    pub variants: i32,
 }
 
 impl From<Session> for HttpResponse {

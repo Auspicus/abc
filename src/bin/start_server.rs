@@ -1,13 +1,10 @@
 extern crate ab;
 extern crate diesel;
 
-use rand::prelude::*;
+use rand::Rng;
 use actix_web::{web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer};
 
 async fn experiment_session_handler(req: HttpRequest, pool: web::Data<ab::DbPool>) -> HttpResponse {
-    let experiment_id = req.match_info().query("experiment_id");
-    println!("Experiment: {}", experiment_id);
-    
     let conn = match pool.get() {
         Ok(c) => c,
         Err(_) => {
@@ -15,13 +12,22 @@ async fn experiment_session_handler(req: HttpRequest, pool: web::Data<ab::DbPool
         }
     };
 
+    let experiment;
+    let experiment_id = req.match_info().query("experiment_id");
+    if let Some(e) = ab::get_experiment(&conn, experiment_id.to_string()) {
+        experiment = e;
+    } else {
+        return HttpResponse::NotFound().finish()
+    }
+
     if let Some(session_id) = req.cookie("AB-Session").map(|c| String::from(c.value())) {
-        if let Some(session) = ab::get_session(&conn, session_id) {
+        if let Some(session) = ab::get_session(&conn, &session_id, &experiment.id) {
             return HttpResponse::from(session);
         }
     }
 
-    return HttpResponse::from(ab::create_session(&conn, random()));
+    let mut rng = rand::thread_rng();
+    return HttpResponse::from(ab::create_session(&conn, &experiment.id, rng.gen_range(0..experiment.variants)));
 }
 
 #[actix_web::main]
