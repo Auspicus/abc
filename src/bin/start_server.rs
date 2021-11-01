@@ -1,12 +1,13 @@
-extern crate ab;
+extern crate abc;
 extern crate diesel;
 
-use ab::models::Experiment;
+use abc::models::Experiment;
 use rand::Rng;
 use actix_web::{App, HttpMessage, HttpRequest, HttpResponse, HttpServer};
 use actix_web::web;
+use std::env;
 
-async fn get_experiment_session(req: HttpRequest, pool: web::Data<ab::DbPool>) -> HttpResponse {
+async fn get_experiment_session(req: HttpRequest, pool: web::Data<abc::DbPool>) -> HttpResponse {
     let conn = match pool.get() {
         Ok(c) => c,
         Err(_) => {
@@ -16,23 +17,23 @@ async fn get_experiment_session(req: HttpRequest, pool: web::Data<ab::DbPool>) -
 
     let experiment;
     let experiment_id = req.match_info().query("experiment_id");
-    if let Some(e) = ab::get_experiment(&conn, experiment_id.to_string()) {
+    if let Some(e) = abc::get_experiment(&conn, experiment_id.to_string()) {
         experiment = e;
     } else {
         return HttpResponse::NotFound().finish()
     }
 
     if let Some(session_id) = req.cookie("AB-Session").map(|c| String::from(c.value())) {
-        if let Some(session) = ab::get_session(&conn, &session_id, &experiment.id) {
+        if let Some(session) = abc::get_session(&conn, &session_id, &experiment.id) {
             return HttpResponse::from(session);
         }
     }
 
     let mut rng = rand::thread_rng();
-    return HttpResponse::from(ab::create_session(&conn, &experiment.id, rng.gen_range(0..experiment.variants)));
+    return HttpResponse::from(abc::create_session(&conn, &experiment.id, rng.gen_range(0..experiment.variants)));
 }
 
-async fn post_experiment(body: web::Json<Experiment>, pool: web::Data<ab::DbPool>) -> HttpResponse {
+async fn post_experiment(body: web::Json<Experiment>, pool: web::Data<abc::DbPool>) -> HttpResponse {
     let conn = match pool.get() {
         Ok(c) => c,
         Err(_) => {
@@ -40,14 +41,16 @@ async fn post_experiment(body: web::Json<Experiment>, pool: web::Data<ab::DbPool
         }
     };
 
-    ab::create_experiment(&conn, &body);
+    abc::create_experiment(&conn, &body);
 
     return HttpResponse::from(body.into_inner());
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let pool = ab::create_db_pool();
+    let bind_host = env::var("BIND_HOST").expect("BIND_HOST must be set");
+    let bind_port: u16 = env::var("BIND_PORT").expect("BIND_PORT must be set").parse().expect("Failed to parse BIND_PORT as u16");
+    let pool = abc::create_db_pool();
 
     HttpServer::new(move || {
         App::new()
@@ -55,7 +58,7 @@ async fn main() -> std::io::Result<()> {
             .route("/experiment/{experiment_id}/session", web::get().to(get_experiment_session))
             .route("/experiment", web::post().to(post_experiment))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((bind_host, bind_port))?
     .run()
     .await
 }
