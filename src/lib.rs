@@ -4,7 +4,6 @@ extern crate diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use diesel::r2d2::ConnectionManager;
-use std::env;
 
 use self::models::{Session, Experiment};
 
@@ -13,9 +12,7 @@ pub mod schema;
 
 pub type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
-pub fn create_db_pool() -> DbPool {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
+pub fn create_db_pool(database_url: String) -> DbPool {
     r2d2::Pool::builder()
       .build(ConnectionManager::new(database_url))
       .expect("Failed to create database connection pool.")

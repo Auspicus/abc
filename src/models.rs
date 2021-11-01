@@ -24,6 +24,7 @@ impl From<Session> for HttpResponse {
         HttpResponse::Ok()
             .cookie(Cookie::build("AB-Session", format!("{}", s.id)).permanent().finish())
             .cookie(Cookie::new("AB-Variant", format!("{}", s.variant)))
+            .header("Cache-Control", "no-store, max-age=0")
             .finish()
     }
 }

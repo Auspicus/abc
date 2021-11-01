@@ -50,7 +50,10 @@ async fn post_experiment(body: web::Json<Experiment>, pool: web::Data<abc::DbPoo
 async fn main() -> std::io::Result<()> {
     let bind_host = env::var("BIND_HOST").expect("BIND_HOST must be set");
     let bind_port: u16 = env::var("BIND_PORT").expect("BIND_PORT must be set").parse().expect("Failed to parse BIND_PORT as u16");
-    let pool = abc::create_db_pool();
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    println!("Starting web server at {}:{} connecting to {}", bind_host, bind_port, database_url);
+    
+    let pool = abc::create_db_pool(database_url);
 
     HttpServer::new(move || {
         App::new()
