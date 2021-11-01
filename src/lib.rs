@@ -36,6 +36,15 @@ pub fn get_experiment(conn: &SqliteConnection, eid: String) -> Option<Experiment
   return results.into_iter().nth(0)
 }
 
+pub fn create_experiment(conn: &SqliteConnection, experiment: &Experiment) -> Experiment {
+  diesel::insert_into(schema::experiments::table)
+    .values(experiment)
+    .execute(conn)
+    .expect("Failed to create new session.");
+
+  return experiment.clone()
+}
+
 pub fn get_session(conn: &SqliteConnection, sid: &String, eid: &String) -> Option<Session> {
   use self::schema::sessions::dsl::*;
 
