@@ -8,7 +8,7 @@ const ABExample = () => {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch('http://localhost:8080/experiments/experiment-1/session', { credentials: 'include' })
+      const res = await fetch('https://abc.desarol.com/experiments/experiment-1/session', { credentials: 'include' })
       const { variant: fetchedVariant } = await res.json()
       setVariant(fetchedVariant)
     })()

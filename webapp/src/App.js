@@ -8,7 +8,7 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch('http://localhost:8080/sessions')
+      const res = await fetch('https://abc.desarol.com/sessions')
       const body = await res.json()
       setData(body.data)
     })()
