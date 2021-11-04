@@ -104,7 +104,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:3000")
+            .allowed_origin("https://admin.abc.desarol.com")
             .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![http::header::ACCEPT, http::header::CONTENT_TYPE])
             .supports_credentials()
