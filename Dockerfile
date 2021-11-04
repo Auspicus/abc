@@ -1,6 +1,6 @@
 FROM rust:1.56 as builder
 WORKDIR /usr/src/rustapp
-COPY . .
+COPY ./server .
 RUN cargo install --path .
 RUN cargo install diesel_cli --no-default-features --features="sqlite"
 RUN diesel migration run --database-url="database.db"

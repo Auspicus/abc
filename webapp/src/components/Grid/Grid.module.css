@@ -1,0 +1,18 @@
+.Grid {
+  text-align: left;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.GridHeadingCell {
+  border: 1px solid #000;
+  padding: 1rem;
+  margin: 0;
+}
+
+.GridDataCell {
+  border: 1px solid #000;
+  padding: 1rem;
+  margin: 0;
+}
